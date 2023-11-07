@@ -8,19 +8,19 @@ app.get("/getFile", async (req, res) => {
   const repoOwner = req.query.repoOwner;
   const repoName = req.query.repoName;
   const filePath = req.query.filePath;
-  const accessToken = req.query.accessToken;
+  const branch = req.query.branch;
 
   if (!repoOwner || !repoName || !filePath) {
     res.status(400).json({ error: "Missing parameters: owner, repo, or path" });
     return;
   }
 
-  const apiUrl = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/7.8/${filePath}`;
+  const apiUrl = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/${branch}/${filePath}`;
   const headers = new fetch.Headers();
 
-  if (accessToken) {
-    headers.append("Authorization", `Bearer ${accessToken}`);
-  }
+  // if (accessToken) {
+  //   headers.append("Authorization", `Bearer ${accessToken}`);
+  // }
 
   try {
     const response = await fetch(apiUrl, { method: "GET", headers });

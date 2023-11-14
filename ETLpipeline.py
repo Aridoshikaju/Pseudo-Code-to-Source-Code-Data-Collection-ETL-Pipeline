@@ -1,5 +1,7 @@
 import sqlite3
 import threading
+import subprocess
+from bs4 import BeautifulSoup
 # import requests
 
 """ 
@@ -44,8 +46,23 @@ def newRowObj(row) -> RowData:
 
 def attachBranch(row : RowData) -> None:
     #this will use the gitHub repo page to get the default branch which will be furthur used to create the URL
+    try:
+        html_content = subprocess.check_output(['curl', '-L', row.url], text=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing curl command: {e}")
+        html_content = None
+    if html_content:
+    # Continue with processing the HTML content
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        # Find the <summary> element with the specified class and attributes
+        summary_element = soup.find("summary", class_="btn css-truncate", attrs={"data-hotkey": "w", "title": "Switch branches or tags"})
+
+        if summary_element:
+            # Get the text inside the <span class="css-truncate-target" data-menu-button>
+            version_text = summary_element.find("span", class_="css-truncate-target", attrs={"data-menu-button": True}).text.strip()
+    row.branch = version_text
     
-    pass
 
 def getCompleteCodeFromGithub(row : RowData) -> None:
     #This will extract and attach the complete code from gitHub to the object

@@ -61,6 +61,10 @@ def attachBranch(row : RowData) -> None:
         if summary_element:
             # Get the text inside the <span class="css-truncate-target" data-menu-button>
             version_text = summary_element.find("span", class_="css-truncate-target", attrs={"data-menu-button": True}).text.strip()
+        else:
+            version_text = "master"
+    else:
+        version_text = "master"
     row.branch = version_text
     
 

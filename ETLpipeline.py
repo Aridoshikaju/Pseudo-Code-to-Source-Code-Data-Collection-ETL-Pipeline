@@ -12,11 +12,11 @@ Complete Code
 
 class RowData:
     #all the information of a row
-    def __init__(self,language : str, url : str, path : str, repoName : str, repoOwner : str) -> None:
+    def __init__(self,language : str, url : str, filePath : str, repoName : str, repoOwner : str) -> None:
         #logic to traverse the row are aquire the required data only
         self.language = language
         self.url = url
-        self.path = path
+        self.filePath = filePath
         self.repoName = repoName
         self.repoOwner = repoOwner
         self.branch = None
@@ -32,16 +32,19 @@ def connectDataBase():
 
 def newRowObj(row) -> RowData:
     #logic to traverse the row and return a RowData object
-    language = "python"
-    url = "link"
-    path = "file name included"
-    repoName = "some"
-    repoOwner = "some"
-    row = RowData(language, url, path, repoName, repoOwner)
+    # language = "python"
+    # github_repo_url = "link"
+    # filePath = "file name included"
+    # repoName = "some"
+    # repoOwner = "some"
+    id, snippet, language, repo_file_name, github_repo_url, license, commit_hash, starting_line_number, chunk_size = row
+    repoOwner, repoName, filePath = repo_file_name.split("/", 2)
+    row = RowData(language, github_repo_url, filePath, repoName, repoOwner)
     return row
 
 def attachBranch(row) -> None:
     #this will use the gitHub repo page to get the default branch which will be furthur used to create the URL
+    
     pass
 
 def getCompleteCodeFromGithub(row : RowData) -> None:
@@ -84,7 +87,9 @@ def store():
         #convert the row into a binary and save it
         pass
 
-def processRow(currentRow) -> None:
+def processRow(row) -> None:
+    #createt the row object with all the properties
+    currentRow = newRowObj(row)
     tranform(currentRow)
     store(currentRow)
 
@@ -98,14 +103,12 @@ def fetchAndProcessRows():
     cursor = connectDataBase()
     row = cursor.fetchone()
     while row is not None:
-        currentRow = newRowObj(row)
+        # currentRow = newRowObj(row)
         # Create a new thread for processing the current row
-        thread = threading.Thread(target=processRow, args=(currentRow,))
+        thread = threading.Thread(target=processRow, args=(row,))
         # Start the thread
         thread.start()
         row = cursor.fetchone()
 
 if __name__ == '__main__':
     fetchAndProcessRows()
-
-

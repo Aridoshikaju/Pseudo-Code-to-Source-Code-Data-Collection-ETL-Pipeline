@@ -1,11 +1,12 @@
 import subprocess
+from bs4 import BeautifulSoup
 
 # Replace these with your actual values
 repo_owner = "guzzle"
 repo_name = "guzzle"
 
 # URL of the GitHub repository page
-repo_url = "https://github.com/{repo_owner}/{repo_name}"
+repo_url = f"https://github.com/{repo_owner}/{repo_name}"
 
 # Run the curl command to fetch the HTML content and follow redirects (-L option)
 try:
@@ -14,22 +15,18 @@ except subprocess.CalledProcessError as e:
     print(f"Error executing curl command: {e}")
     html_content = None
 
-print(html_content)
-
 if html_content:
     # Continue with processing the HTML content
-    from bs4 import BeautifulSoup
-
-    # Parse the HTML content
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    # Find the element containing the default branch name
-    branch_element = soup.find("span", class_="css-truncate-target")
+    # Find the <summary> element with the specified class and attributes
+    summary_element = soup.find("summary", class_="btn css-truncate", attrs={"data-hotkey": "w", "title": "Switch branches or tags"})
 
-    if branch_element:
-        default_branch = branch_element.text.strip()
-        print("Default Branch:", default_branch)
+    if summary_element:
+        # Get the text inside the <span class="css-truncate-target" data-menu-button>
+        version_text = summary_element.find("span", class_="css-truncate-target", attrs={"data-menu-button": True}).text.strip()
+        print("Version:", version_text)
     else:
-        print("Failed to find the default branch element in the HTML content.")
+        print("Failed to find the summary element in the HTML content.")
 else:
     print("HTML content not available.")

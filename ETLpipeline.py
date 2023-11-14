@@ -135,6 +135,13 @@ def store():
 def processRow(row) -> None:
     #createt the row object with all the properties
     currentRow = newRowObj(row)
+
+    #check if file already processed with help of hashSet
+    #thread safe methods need to be implemented for check and adding into it
+    #the set creaeted must go beond the life cycle of the program
+    #the set must be laoded at the start of the program
+
+
     tranform(currentRow)
     store(currentRow)
 

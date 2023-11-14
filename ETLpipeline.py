@@ -42,7 +42,7 @@ def newRowObj(row) -> RowData:
     row = RowData(language, github_repo_url, filePath, repoName, repoOwner)
     return row
 
-def attachBranch(row) -> None:
+def attachBranch(row : RowData) -> None:
     #this will use the gitHub repo page to get the default branch which will be furthur used to create the URL
     
     pass
@@ -53,7 +53,7 @@ def getCompleteCodeFromGithub(row : RowData) -> None:
     params = {
         "repoOwner": row.repoOwner,   # Replace with your GitHub username
         "repoName": row.repoName,    # Replace with the GitHub repository name
-        "filePath": row.path,  # Replace with the file path you want to access
+        "filePath": row.filePath,  # Replace with the file path you want to access
         "branch" : row.branch
         #"accessToken": "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"  # Replace with your GitHub access token (if needed)
     }

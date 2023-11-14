@@ -1,32 +1,35 @@
-import requests
-import base64
+import subprocess
 
-def get_github_file_content(repo_url, file_path, access_token=None):
-    # Construct the API URL
-    api_url = f"https://api.github.com/repos/{repo_url}/contents/{file_path}"
+# Replace these with your actual values
+repo_owner = "guzzle"
+repo_name = "guzzle"
 
-    # Add authentication if required
-    headers = {}
-    if access_token:
-        headers['Authorization'] = f"token {access_token}"
+# URL of the GitHub repository page
+repo_url = "https://github.com/{repo_owner}/{repo_name}"
 
-    # Send a GET request to the GitHub API
-    response = requests.get(api_url, headers=headers)
+# Run the curl command to fetch the HTML content and follow redirects (-L option)
+try:
+    html_content = subprocess.check_output(['curl', '-L', repo_url], text=True)
+except subprocess.CalledProcessError as e:
+    print(f"Error executing curl command: {e}")
+    html_content = None
 
-    if response.status_code == 200:
-        data = response.json()
-        content = base64.b64decode(data['content']).decode('utf-8')
-        return content
+print(html_content)
+
+if html_content:
+    # Continue with processing the HTML content
+    from bs4 import BeautifulSoup
+
+    # Parse the HTML content
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # Find the element containing the default branch name
+    branch_element = soup.find("span", class_="css-truncate-target")
+
+    if branch_element:
+        default_branch = branch_element.text.strip()
+        print("Default Branch:", default_branch)
     else:
-        return None  # Handle errors appropriately
-
-# Example usage
-repo_url = "https://github.com/guzzle/guzzle"
-# file_path = "path/to/file.txt"
-file_path = "docs/conf.py"
-access_token = "your_github_access_token"  # If accessing a private repo
-content = get_github_file_content(repo_url, file_path, access_token)
-if content:
-    print(content)
+        print("Failed to find the default branch element in the HTML content.")
 else:
-    print("File not found or an error occurred.")
+    print("HTML content not available.")

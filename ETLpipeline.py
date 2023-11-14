@@ -2,10 +2,12 @@ import sqlite3
 import threading
 import subprocess
 from bs4 import BeautifulSoup
+import json
 # import requests
 
 """ 
-3 rows 
+4 rows 
+actual code
 Pesudo Code
 Sentence Code
 Complete Code
@@ -44,54 +46,76 @@ def newRowObj(row) -> RowData:
     row = RowData(language, github_repo_url, filePath, repoName, repoOwner)
     return row
 
-def attachBranch(row : RowData) -> None:
-    #this will use the gitHub repo page to get the default branch which will be furthur used to create the URL
+def fetchBranchPage(url) -> None:
     try:
-        html_content = subprocess.check_output(['curl', '-L', row.url], text=True)
+        response = subprocess.check_output(['curl', '-L', url], text=True)
+        return response
     except subprocess.CalledProcessError as e:
         print(f"Error executing curl command: {e}")
-        html_content = None
-    if html_content:
-    # Continue with processing the HTML content
-        soup = BeautifulSoup(html_content, 'html.parser')
+        return None
 
-        # Find the <summary> element with the specified class and attributes
-        summary_element = soup.find("summary", class_="btn css-truncate", attrs={"data-hotkey": "w", "title": "Switch branches or tags"})
+def parseForBranch(html_content):
+    try:
+        if html_content:
+        # Continue with processing the HTML content
+            soup = BeautifulSoup(html_content, 'html.parser')
 
-        if summary_element:
-            # Get the text inside the <span class="css-truncate-target" data-menu-button>
-            version_text = summary_element.find("span", class_="css-truncate-target", attrs={"data-menu-button": True}).text.strip()
-        else:
-            version_text = "master"
-    else:
-        version_text = "master"
-    row.branch = version_text
+            # Find the <summary> element with the specified class and attributes
+            summary_element = soup.find("summary", class_="btn css-truncate", attrs={"data-hotkey": "w", "title": "Switch branches or tags"})
+
+            if summary_element:
+                # Get the text inside the <span class="css-truncate-target" data-menu-button>
+                version_text = summary_element.find("span", class_="css-truncate-target", attrs={"data-menu-button": True}).text.strip()
+                return version_text
+        return "master"
+    except:
+        return "master"
+
+def attachBranch(row : RowData) -> None:
+    #this will use the gitHub repo page to get the default branch which will be furthur used to create the URL
+    pageConent = fetchBranchPage(row.url)
+    branchVersion = parseForBranch(pageConent)
+    row.branch = branchVersion
+
     
+def fetchForFileContent(row : RowData):
+    raw_url = f"https://github.com/{row.repoOwner}/{row.repoName}/blob/{row.branch}/{row.filePath}"
+    try:
+        # Run the curl command to fetch the file content
+        response = subprocess.check_output(['curl', '-L', raw_url], text=True)
+        return response
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing curl command: {e}")
+        return None
+
+def parseForContent(content):
+    try:
+        # Parse the JSON response
+        json_response = json.loads(content)
+        
+        # Extract raw lines from the response
+        raw_lines = json_response.get("payload", {}).get("blob", {}).get("rawLines", [])
+        
+        return raw_lines
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+        return None
 
 def getCompleteCodeFromGithub(row : RowData) -> None:
     #This will extract and attach the complete code from gitHub to the object
-    reqUrl = "http://localhost:8080/getFile"  # Change the URL if your server is hosted elsewhere
-    params = {
-        "repoOwner": row.repoOwner,   # Replace with your GitHub username
-        "repoName": row.repoName,    # Replace with the GitHub repository name
-        "filePath": row.filePath,  # Replace with the file path you want to access
-        "branch" : row.branch
-        #"accessToken": "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"  # Replace with your GitHub access token (if needed)
-    }
-    response = requests.get(reqUrl, params=params)
-    if response.status_code == 200:
-        #take it to the next levels
-        response_data = response.json()
-        file_content = response_data.get("content")
-        # row.completeCode = """{file_content}"""
-        row.completeCode = f'{{"completeCode": """{file_content}"""}}'
-    else:
-        #save the repo name to file and end 
-        pass
-    pass
+    fileContent = fetchForFileContent(row)
+    rawLines = parseForContent(fileContent)
+    file_content = """"""
+
+    for line in rawLines:
+        file_content = file_content + line + "\n"
+
+    row.completeCode = fileContent
 
 def attachPesudoCodes(row : RowData) -> None:
      #this will use the g4f model and attach the sentence and normal pesudo code to the row object
+     #attach pesudo form
+     #attach sentence form
      pass
 
 def tranform(row : RowData):

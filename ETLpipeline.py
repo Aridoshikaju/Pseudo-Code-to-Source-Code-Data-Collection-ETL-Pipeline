@@ -136,14 +136,26 @@ def processRow(row) -> None:
     #createt the row object with all the properties
     currentRow = newRowObj(row)
 
+    #the set must be laoded at the start of the program
     #check if file already processed with help of hashSet
     #thread safe methods need to be implemented for check and adding into it
     #the set creaeted must go beond the life cycle of the program
-    #the set must be laoded at the start of the program
+        #needs to be stored is some form
+        #achiveable using try-expect
+    
+    """
+        try:
+            try to perform the tasks
+        expect:
+            close the binary file
+            store the set in a file
+    """
 
-
+    #Tasks
     tranform(currentRow)
     store(currentRow)
+
+    #after Storing, the row must be added to processed set
 
 
 #extract
